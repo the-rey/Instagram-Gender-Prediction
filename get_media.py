@@ -3,6 +3,7 @@
 
 from azure.face_detection import getFaceAttributes
 import urllib
+from get_all_comments import saveComments
 
 # get Self user feed 
 #API.getSelfUserFeed()
@@ -24,7 +25,7 @@ def getUsersPictures(API, targetUsername):
     # get all the pictures
     i=0
     for media in mediaList['items']:
-        # mediaID = media['id']
+        mediaID = media['id']
         # mediaType = media['media_type']
         try:
             mediaCandidates = media['image_versions2']['candidates'][0]
@@ -40,18 +41,24 @@ def getUsersPictures(API, targetUsername):
         mediaUrl = mediaCandidates['url']
         mediaUrl = mediaUrl[:-(len(mediaUrl) - mediaUrl.rfind("?"))]
         
-        i+=1
         
-        save(mediaUrl, targetUsername,str(i))
-        if(i>7): 
+        
+        if(save(mediaUrl, targetUsername,str(i))):
+            i+=1
+            saveComments(API, targetUsername, mediaID,str(i))
+
+        if(i>10): 
             break
 
 
 def save(mediaUrl, targetUsername, comment):
     faceAttributes = getFaceAttributes(mediaUrl)
-    print(faceAttributes)
     if(faceAttributes):
+        print("saving")
         filename = targetUsername + " - " + comment + " - age " + str(int(faceAttributes[0]['age'])) + " gender "+faceAttributes[0]['gender']+ ".jpg"
         urllib.request.urlretrieve(mediaUrl, "pictures/" + filename)
+        return True
 
+    return False
+    
 

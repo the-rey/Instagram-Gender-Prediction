@@ -2,6 +2,7 @@ from InstagramAPI import InstagramAPI
 import urllib
 from get_media import getUsersPictures
 from azure.face_detection import getFaceAttributes
+from parameter import getPassword, getUsername
 
 def getTotalFollowers(api, user_id):
     """
@@ -39,8 +40,8 @@ def getTotalFollowing(api, user_id):
         next_max_id = api.LastJson.get('next_max_id', '')
     return followers
 
-username = 'reynaldonathanael'
-password = ''
+username = getUsername()
+password = getPassword()
 targetUsername = 'reynaldonathanael'
 
 API = InstagramAPI(username, password)
@@ -55,7 +56,10 @@ userId = TargetUserId = (API.LastJson["user"]["pk"])
 
 #get followers
 followers = getTotalFollowers(API, userId)
+
+#get followings
 followers = getTotalFollowing(API, userId)
+#followers.reverse()
 print("getting followers")
 
 #print followers id if user is public
@@ -64,4 +68,4 @@ for index, follower in enumerate(followers):
     print(follower['username'])
     getUsersPictures(API, follower['username'])
 
-    if(index >= 50): break
+    #if(index >= 70): break
