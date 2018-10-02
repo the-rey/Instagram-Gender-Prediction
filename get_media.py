@@ -13,12 +13,14 @@ def getUsersPictures(API, targetUsername):
     
     API.searchUsername(targetUsername)
     user_id = (API.LastJson["user"]["pk"])
+    profile_picture_url = API.LastJson["user"]["profile_pic_url"]
+
+    save(profile_picture_url, targetUsername,"pp")
 
     API.getUserFeed(user_id)
     # get response json and assignment value to MediaList Variable
     # dict type data 
     mediaList = API.LastJson 
-
     # get all the pictures
     i=0
     for media in mediaList['items']:
@@ -37,10 +39,19 @@ def getUsersPictures(API, targetUsername):
 
         mediaUrl = mediaCandidates['url']
         mediaUrl = mediaUrl[:-(len(mediaUrl) - mediaUrl.rfind("?"))]
-        filename = targetUsername+" - " + str(i) + ".jpg"
+        
         i+=1
-        urllib.request.urlretrieve(mediaUrl, "pictures/" + filename)
-        getFaceAttributes("pictures/" + filename)
+        
+        save(mediaUrl, targetUsername,str(i))
+        if(i>7): 
+            break
 
+
+def save(mediaUrl, targetUsername, comment):
+    faceAttributes = getFaceAttributes(mediaUrl)
+    print(faceAttributes)
+    if(faceAttributes):
+        filename = targetUsername + " - " + comment + " - age " + str(int(faceAttributes[0]['age'])) + " gender "+faceAttributes[0]['gender']+ ".jpg"
+        urllib.request.urlretrieve(mediaUrl, "pictures/" + filename)
 
 

@@ -53,7 +53,7 @@ while has_more_comments:
         max_id = API.LastJson.get('next_max_id', '')
         time.sleep(2)
 
-for c in comments:2
+for c in comments:
     try:
         print(c['user']['username'] +" : "+ c['text'])
     except:
@@ -61,7 +61,7 @@ for c in comments:2
 
 try:
     import cPickle as pickle
-except ImportError:  # python 3.x
+except ImportError:  
     import pickle
 
 with open('response.p', 'wb') as fp:

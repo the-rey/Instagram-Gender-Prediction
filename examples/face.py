@@ -45,4 +45,3 @@ def getFaceAttributes(image_url):
         print(temp)
         faceAttributes.append(temp)
     return faceAttributes
-

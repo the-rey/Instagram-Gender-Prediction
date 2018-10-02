@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib import patches
 from io import BytesIO
-import os
 
 # Replace <Subscription Key> with your valid subscription key.
 subscription_key = "629c31b208da4f7d9acda254ed2f9fe5"
@@ -22,32 +21,34 @@ face_api_url = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.0/dete
 
 def getFaceAttributes(image_url):
     # Set image_url to the URL of an image that you want to analyze.
-
-    #'https://how-old.net/Images/faces2/main007.jpg'
+    image_url; #'https://how-old.net/Images/faces2/main007.jpg'
     faceAttributes = []
 
     headers = {'Ocp-Apim-Subscription-Key': subscription_key}
     params = {
         'returnFaceId': 'true',
         'returnFaceLandmarks': 'false',
-        'returnFaceAttributes': 'age,gender'
+        'returnFaceAttributes': 'age,gender,headPose,smile,facialHair,glasses,' +
+        'emotion,hair,makeup,occlusion,accessories,blur,exposure,noise'
     }
-
-    image_url="C:/Users/ReynaldoNathanael/Pictures/BinusianPhotoHandler.jpg"
-    image_path=os.path.join(image_url)
-    data = open(image_path, 'rb')
-
-    response = requests.post(face_api_url, params=params, headers=headers, data=data)
+    data = {'url': image_url}
+    response = requests.post(face_api_url, params=params, headers=headers, json=data)
     faces = response.json()
     # Display the original image and overlay it with the face information.
-    image = Image.open(BytesIO(requests.get(image_url).content))
-    plt.figure(figsize=(8, 8))
-    ax = plt.imshow(image, alpha=0.6)
+
     temp = {}
     for face in faces:
-        print(face['faceAttributes']['gender']+" - "+ str(face['faceAttributes']['age']))
-        temp.update({'gender':face['faceAttributes']['gender']})
-        print(temp)
-        faceAttributes.append(temp)
-    return faceAttributes
+        try:
+            #print(face['faceAttributes']['gender']+" - "+ str(face['faceAttributes']['age']))
+            temp.update({'gender':face['faceAttributes']['gender']})
+            temp.update({'age':face['faceAttributes']['age']})
+            #print(temp)
+            faceAttributes.append(temp)
+        except:
+            break
 
+    print("size : "+ str(len(faceAttributes)))
+
+    if(len(faceAttributes) == 1):
+        print("saving")
+        return faceAttributes
