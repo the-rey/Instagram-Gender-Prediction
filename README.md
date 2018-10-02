@@ -8,6 +8,6 @@ password = <your password>
 ```
   - Run it 
  ```
-$  get_followers.py
+$  get_followers_pictures.py
 ```
 
