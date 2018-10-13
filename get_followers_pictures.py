@@ -2,7 +2,8 @@ from InstagramAPI import InstagramAPI
 import urllib
 from get_media import getUsersPictures
 from azure.face_detection import getFaceAttributes
-from parameter import getPassword, getUsername
+from parameter import getPassword, getUsername, getTargetUsername
+import argparse
 
 def getTotalFollowers(api, user_id):
     """
@@ -40,32 +41,45 @@ def getTotalFollowing(api, user_id):
         next_max_id = api.LastJson.get('next_max_id', '')
     return followers
 
-username = getUsername()
-password = getPassword()
-targetUsername = 'reynaldonathanael'
+def main(args):
+    username = args.username
+    password =args.password
+    targetUsername = args.target
 
-API = InstagramAPI(username, password)
-API.login()
+    API = InstagramAPI(username, password)
+    API.login()
 
-#your own id
-#userId = API.username_id
+    #get other users' id
+    API.searchUsername(targetUsername)
+    userId = TargetUserId = (API.LastJson["user"]["pk"])
 
-#get other users' id
-API.searchUsername(targetUsername)
-userId = TargetUserId = (API.LastJson["user"]["pk"])
+    #get followings
+    followers = getTotalFollowing(API, userId)
+    #followers.reverse()
+    print("getting followers")
 
-#get followers
-followers = getTotalFollowers(API, userId)
+    #print followers id if user is public
+    try:
+        for index, follower in enumerate(followers):
+            if(follower['is_private'] == False): 
+                print(follower['username'])
+                getUsersPictures(API, follower['username'])
 
-#get followings
-followers = getTotalFollowing(API, userId)
-#followers.reverse()
-print("getting followers")
+    except:
+        followers.reverse()
+        for index, follower in enumerate(followers):
+            if(follower['is_private'] == False): 
+                print(follower['username'])
+                getUsersPictures(API, follower['username'])
 
-#print followers id if user is public
-for index, follower in enumerate(followers):
-    #if(follower['is_private'] == False): 
-    print(follower['username'])
-    getUsersPictures(API, follower['username'])
+if __name__ == "__main__":
 
-    #if(index >= 70): break
+    parser = argparse.ArgumentParser()
+
+    # Access Key
+    parser.add_argument("username", help="insert instagram username")
+    parser.add_argument("password", help="insert instagram password")
+    parser.add_argument("target", help="insert target's username")
+
+    args = parser.parse_args()
+    main(args)

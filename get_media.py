@@ -3,7 +3,8 @@
 
 from azure.face_detection import getFaceAttributes
 import urllib
-from get_all_comments import saveComments
+from get_all_comments import saveComments, getComments
+from user_handler import addGenderAndAge, getAge, getGender
 
 # get Self user feed 
 #API.getSelfUserFeed()
@@ -15,6 +16,7 @@ def getUsersPictures(API, targetUsername):
     API.searchUsername(targetUsername)
     user_id = (API.LastJson["user"]["pk"])
     profile_picture_url = API.LastJson["user"]["profile_pic_url"]
+    target_media_for_comment = []
 
     save(profile_picture_url, targetUsername,"pp")
 
@@ -45,11 +47,26 @@ def getUsersPictures(API, targetUsername):
         
         if(save(mediaUrl, targetUsername,str(i))):
             i+=1
-            saveComments(API, targetUsername, mediaID,str(i))
+            target_media_for_comment.append(mediaID)
 
-        if(i>10): 
+        if(i>15): 
             break
 
+    try:
+        print("FINAL GENDER PREDICTION : " + getGender(targetUsername))
+    except:
+        print("FINAL GENDER PREDICTION : BLANK")
+
+    try:
+        print("FINAL AGE PREDICTION    : " + str(getAge(targetUsername)))
+    except:
+        print("FINAL AGE PREDICTION    : BLANK")
+
+    for index, targetMediaID in enumerate(target_media_for_comment):
+        getComments(API, targetUsername, targetMediaID)
+        print(index)
+        
+    saveComments(targetUsername)
 
 def save(mediaUrl, targetUsername, comment):
     faceAttributes = getFaceAttributes(mediaUrl)
@@ -57,8 +74,8 @@ def save(mediaUrl, targetUsername, comment):
         print("saving")
         filename = targetUsername + " - " + comment + " - age " + str(int(faceAttributes[0]['age'])) + " gender "+faceAttributes[0]['gender']+ ".jpg"
         urllib.request.urlretrieve(mediaUrl, "pictures/" + filename)
+        addGenderAndAge(targetUsername, faceAttributes[0]['gender'], int(faceAttributes[0]['age']))
         return True
-
     return False
     
 
