@@ -41,36 +41,41 @@ def getTotalFollowing(api, user_id):
         next_max_id = api.LastJson.get('next_max_id', '')
     return followers
 
-def main(args):
+def collect_data(args, targetUsername):
     username = args.username
     password =args.password
-    targetUsername = args.target
 
     API = InstagramAPI(username, password)
     API.login()
 
     #get other users' id
     API.searchUsername(targetUsername)
-    userId = TargetUserId = (API.LastJson["user"]["pk"])
+    TargetUserId = (API.LastJson["user"]["pk"])
 
     #get followings
-    followers = getTotalFollowing(API, userId)
-    #followers.reverse()
+    followers = getTotalFollowing(API, TargetUserId)
+    
     print("getting followers")
 
     #print followers id if user is public
-    try:
-        for index, follower in enumerate(followers):
+    
+    for index, follower in enumerate(followers):
+        try:
             if(follower['is_private'] == False): 
                 print(follower['username'])
                 getUsersPictures(API, follower['username'])
+        except:
+            print("error when collecting data for " + follower['username'])
 
-    except:
-        followers.reverse()
-        for index, follower in enumerate(followers):
-            if(follower['is_private'] == False): 
-                print(follower['username'])
-                getUsersPictures(API, follower['username'])
+def main(args):
+
+    targets = getTargetUsername()
+
+    for targetUsername in targets:
+        print("target : " + targetUsername)
+        collect_data(args, targetUsername)
+
+    
 
 if __name__ == "__main__":
 
@@ -79,7 +84,6 @@ if __name__ == "__main__":
     # Access Key
     parser.add_argument("username", help="insert instagram username")
     parser.add_argument("password", help="insert instagram password")
-    parser.add_argument("target", help="insert target's username")
 
     args = parser.parse_args()
     main(args)

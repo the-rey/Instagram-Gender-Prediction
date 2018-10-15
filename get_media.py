@@ -34,7 +34,6 @@ def getUsersPictures(API, targetUsername):
            
         except:
             try:
-                #mediaCandidates = media['carousel_media']['image_versions2']['candidates'][0]
                 mediaCandidates = media['carousel_media'][0]['image_versions2']['candidates'][0]
             except:
                 print("break")
