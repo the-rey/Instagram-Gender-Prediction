@@ -28,7 +28,7 @@ def readfile(filename):
         flag = True
         garbage = ""
         for word in param.garbageWords:
-            if word in comment['text']:
+            if word in word_tokenize(comment['text']):
                 flag = False
                 garbage = word
                 break
