@@ -8,6 +8,7 @@ import json
 import datetime
 from user_handler import getAge, getGender
 import _pickle as pickle
+import parameter as param
 
 all_comments = {}
 
@@ -28,6 +29,10 @@ def saveComments(username):
     data['user']=username
     data['age']=str(getAge(username))
     data['gender']=str(getGender(username))
+
+    #focus cari cowo
+    if data['gender'] != 'male':
+        return
 
     with open('comments/'+'comments '+ username+'('+str(getAge(username))+', '+str(getGender(username))+')' + '.json', 'w') as fp:
         json.dump(data, fp)

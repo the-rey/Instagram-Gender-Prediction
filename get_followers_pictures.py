@@ -54,6 +54,7 @@ def collect_data(args, targetUsername):
 
     #get followings
     followers = getTotalFollowing(API, TargetUserId)
+    followers.reverse()
     
     print("getting followers")
 
