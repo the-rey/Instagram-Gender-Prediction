@@ -1,68 +1,88 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Use text editor to edit the script and type in valid Instagram username/password
 
 from InstagramAPI import InstagramAPI
 import time
 from datetime import datetime
 import json
+import datetime
+from user_handler import getAge, getGender
+import _pickle as pickle
+import parameter as param
 
-media_id = '1878064985478018349'
+all_comments = {}
 
-# stop conditions, the script will end when first of them will be true
-until_date = '2018-09-28'
-count = 10
+def saveComments(username):
 
-API = InstagramAPI("perfectpair.id", "")
-API.login()
-#API.getUsernameInfo()
-has_more_comments = True
-max_id = ''
-comments = []
-
-while has_more_comments:
-    _ = API.getMediaComments(media_id, max_id=max_id)
-    # comments' page come from older to newer, lets preserve desc order in full list
-    for c in reversed(API.LastJson['comments']):
-        comments.append(c)
+    print("saving comments for "+username)
         
-    has_more_comments = API.LastJson.get('has_more_comments', False)
-    # evaluate stop conditions
-    if count and len(comments) >= count:
-        comments = comments[:count]
-        # stop loop
-        has_more_comments = False
-        print("stopped by count")
-    if until_date:
-        older_comment = comments[-1]
-        dt = datetime.utcfromtimestamp(older_comment.get('created_at_utc', 0))
-        # only check all records if the last is older than stop condition
-        if dt.isoformat() <= until_date:
-            # keep comments after until_date
-            comments = [
-                c
-                for c in comments
-                if datetime.utcfromtimestamp(c.get('created_at_utc', 0)) > until_date
-            ]
-            # stop loop
-            has_more_comments = False
-            print("stopped by until_date")
-    # next page
-    if has_more_comments:
-        max_id = API.LastJson.get('next_max_id', '')
-        time.sleep(2)
+    if username not in all_comments:
+        print("data not found")
+        return 
 
-for c in comments:
-    try:
-        print(c['user']['username'] +" : "+ c['text'])
-    except:
-        print("unicode")
+    print("data found")
+    print("number of comments: " +str(len(all_comments[username])))
 
-try:
-    import cPickle as pickle
-except ImportError:  
-    import pickle
+    data = {}
+    
+    data['comments']=all_comments[username]
+    data['user']=username
+    data['age']=str(getAge(username))
+    data['gender']=str(getGender(username))
 
-with open('response.p', 'wb') as fp:
-    pickle.dump(comments, fp, protocol=pickle.HIGHEST_PROTOCOL)
+    #focus cari cowo
+    if data['gender'] != 'male':
+        return
+
+    with open('comments/'+'comments '+ username+'('+str(getAge(username))+', '+str(getGender(username))+')' + '.json', 'w') as fp:
+        json.dump(data, fp)
+
+    new_comment = json.load(open('comments/'+'comments '+ username+'('+str(getAge(username))+', '+str(getGender(username))+')' + '.json', 'r'))
+    print("reading data for : " + new_comment['user'] + " " + new_comment['age'] + " " + new_comment['gender'])
+    for index, comment in enumerate(new_comment['comments']):
+        try:
+            print(index +". "+comment['user']['username'] + " : " + comment['text'])
+        except:
+            comment
+
+    print("number of comments read: " +str(len(new_comment['comments'])))
+
+def getComments(API, username, media_id):
+    
+    if(not media_id): 
+        print("media_id not found")
+        return False
+
+    print("getting comments")
+
+    if(not (username in all_comments)):
+        print("buat baru")
+        all_comments[username] = []
+
+    #API.getUsernameInfo()
+    has_more_comments = True
+    max_id = ''
+
+    flag = True
+
+    while has_more_comments and flag:
+        _ = API.getMediaComments(media_id, max_id=max_id)
+        # comments' page come from older to newer, lets preserve desc order in full list
+        try:
+            for c in reversed(API.LastJson['comments']):
+                all_comments[username].append(c)
+                if len(all_comments[username]) > 500:
+                    flag = False
+                
+        except:
+            print(API.LastJson)
+            
+        has_more_comments = API.LastJson.get('has_more_comments', False)
+        
+        if has_more_comments:
+            max_id = API.LastJson.get('next_max_id', '')
+            time.sleep(2)
+
+    print("number of comments: " +str(len(all_comments[username])))
+
+    

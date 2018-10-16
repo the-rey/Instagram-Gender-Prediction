@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import requests
 # If you are using a Jupyter notebook, uncomment the following line.
 #%matplotlib inline
@@ -7,7 +10,7 @@ from matplotlib import patches
 from io import BytesIO
 
 # Replace <Subscription Key> with your valid subscription key.
-subscription_key = "629c31b208da4f7d9acda254ed2f9fe5"
+subscription_key = "2915e337b58d495f9f85bab8ab2f052c"
 assert subscription_key
 
 # You must use the same region in your REST call as you used to get your
@@ -21,7 +24,7 @@ face_api_url = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.0/dete
 
 def getFaceAttributes(image_url):
     # Set image_url to the URL of an image that you want to analyze.
-    image_url; #'https://how-old.net/Images/faces2/main007.jpg'
+    
     faceAttributes = []
 
     headers = {'Ocp-Apim-Subscription-Key': subscription_key}
@@ -47,8 +50,9 @@ def getFaceAttributes(image_url):
         except:
             break
 
-    print("size : "+ str(len(faceAttributes)))
+    print("Face(s) in frame : "+ str(len(faceAttributes)))
 
     if(len(faceAttributes) == 1):
-        print("saving")
         return faceAttributes
+
+    return False

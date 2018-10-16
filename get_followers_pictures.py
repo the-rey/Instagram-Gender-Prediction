@@ -2,6 +2,8 @@ from InstagramAPI import InstagramAPI
 import urllib
 from get_media import getUsersPictures
 from azure.face_detection import getFaceAttributes
+from parameter import getPassword, getUsername, getTargetUsername
+import argparse
 
 def getTotalFollowers(api, user_id):
     """
@@ -39,29 +41,50 @@ def getTotalFollowing(api, user_id):
         next_max_id = api.LastJson.get('next_max_id', '')
     return followers
 
-username = 'reynaldonathanael'
-password = ''
-targetUsername = 'reynaldonathanael'
+def collect_data(args, targetUsername):
+    username = args.username
+    password =args.password
 
-API = InstagramAPI(username, password)
-API.login()
+    API = InstagramAPI(username, password)
+    API.login()
 
-#your own id
-#userId = API.username_id
+    #get other users' id
+    API.searchUsername(targetUsername)
+    TargetUserId = (API.LastJson["user"]["pk"])
 
-#get other users' id
-API.searchUsername(targetUsername)
-userId = TargetUserId = (API.LastJson["user"]["pk"])
+    #get followings
+    followers = getTotalFollowing(API, TargetUserId)
+    followers.reverse()
+    
+    print("getting followers")
 
-#get followers
-followers = getTotalFollowers(API, userId)
-followers = getTotalFollowing(API, userId)
-print("getting followers")
+    #print followers id if user is public
+    
+    for index, follower in enumerate(followers):
+        try:
+            if(follower['is_private'] == False): 
+                print(follower['username'])
+                getUsersPictures(API, follower['username'])
+        except:
+            print("error when collecting data for " + follower['username'])
 
-#print followers id if user is public
-for index, follower in enumerate(followers):
-    #if(follower['is_private'] == False): 
-    print(follower['username'])
-    getUsersPictures(API, follower['username'])
+def main(args):
 
-    if(index >= 50): break
+    targets = getTargetUsername()
+
+    for targetUsername in targets:
+        print("target : " + targetUsername)
+        collect_data(args, targetUsername)
+
+    
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    # Access Key
+    parser.add_argument("username", help="insert instagram username")
+    parser.add_argument("password", help="insert instagram password")
+
+    args = parser.parse_args()
+    main(args)
