@@ -26,10 +26,12 @@ def readfile(filename):
 
     for index, comment in enumerate(new_comment['comments']):
         flag = True
+        garbage = ""
         for word in param.garbageWords:
             if word in comment['text']:
                 flag = False
-                continue
+                garbage = word
+                break
         if flag:
             data.append((new_comment['gender'],comment['text']))
 
@@ -60,7 +62,7 @@ def svm():
             listOfGender.append(gender)
 
         for word in word_tokenize(comment):
-            
+        
             tempDictionaryPositive[word]=True
             tempDictionaryNegative[word]=False
             listOfWords.append(word)
@@ -72,8 +74,8 @@ def svm():
                 trainDataGender.append((tempDictionaryNegative,gen))
 
 
-    genderClassifier = NaiveBayesClassifier.train(trainDataGender[:56000])
-    print("{0:.2%}".format(classify.accuracy(genderClassifier,trainDataGender[56000:])))
+    genderClassifier = NaiveBayesClassifier.train(trainDataGender[1000:])
+    print("{0:.2%}".format(classify.accuracy(genderClassifier,trainDataGender[:1000])))
 
     try:
         #HELPPPPPPP

@@ -84,5 +84,3 @@ def getComments(API, username, media_id):
             time.sleep(2)
 
     print("number of comments: " +str(len(all_comments[username])))
-
-    
