@@ -105,6 +105,8 @@ venv.bak/
 
 # folder
 pictures/
+*.jpg
+*.jpeg
 
 #misc
 testing.py
