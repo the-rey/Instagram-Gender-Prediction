@@ -11,6 +11,7 @@ import io
 import parameter as param
 from nltk.probability import FreqDist
 import _pickle as pickle
+import numpy as np
 
 data = []
 listOfGender = []
@@ -76,8 +77,21 @@ def nb():
                 trainDataGender.append((tempDictionaryNegative,gen))
 
 
-    genderClassifier = NaiveBayesClassifier.train(trainDataGender[1000:])
-    print("{0:.2%}".format(classify.accuracy(genderClassifier,trainDataGender[:1000])))
+    average_accuracy = 0
+    size = len(trainDataGender)
+
+    for i in range(1,9):
+
+        test_set = trainDataGender[round((i-1)*size/8):round((i)*size/8)]
+        training_set = trainDataGender[0:round((i-1)*size/8)]
+        training_set.extend(trainDataGender[round((i)*size/8):])
+
+        genderClassifier = NaiveBayesClassifier.train(training_set)
+        print("{0:.2%}".format(classify.accuracy(genderClassifier,test_set)))
+        average_accuracy += classify.accuracy(genderClassifier,test_set)
+
+    average_accuracy /= 8
+    print("average accuracy: " + "{0:.2%}".format(average_accuracy))
 
     try:
         #HELPPPPPPP
