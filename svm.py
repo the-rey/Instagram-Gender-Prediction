@@ -52,7 +52,7 @@ for i, v in enumerate(gender_comment):
     if i == LIMIT:
         break
 
-model = svm.SVC(kernel='linear', C=1, gamma=100)
+model = svm.SVC(kernel='linear', C=1, gamma=1)
 model.fit(data, label)
 model.score(data, label)
 label_predicted = model.predict(data)
