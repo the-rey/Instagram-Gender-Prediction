@@ -5,7 +5,7 @@ import json
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 
-LIMIT = 100
+LIMIT = 1000
 
 with open('gender-comment.json', 'r') as f:
     gender_comment = json.load(f)
@@ -52,9 +52,31 @@ for i, v in enumerate(gender_comment):
     if i == LIMIT:
         break
 
-model = svm.SVC(kernel='linear', C=1, gamma=1)
-model.fit(data, label)
-model.score(data, label)
-label_predicted = model.predict(data)
 
-print(accuracy_score(label, label_predicted))
+size = LIMIT
+
+average_accuracy = 0
+
+for i in range(1,9):
+
+        test_set = data[round((i-1)*size/8):round((i)*size/8)]
+        label_test_set = label[round((i-1)*size/8):round((i)*size/8)]
+        
+        training_set = data[0:round((i-1)*size/8)]
+        training_set.extend(data[round((i)*size/8):])
+
+        label_training_set = label[0:round((i-1)*size/8)]
+        label_training_set.extend(label[round((i)*size/8):])
+
+        print("starting test ke " + str(i))
+
+        model = svm.SVC(kernel='linear', C=10, gamma=100)
+        model.fit(training_set, label_training_set)
+        model.score(training_set, label_training_set)
+
+        label_predicted = model.predict(test_set)
+
+        average_accuracy += accuracy_score(label_test_set, label_predicted)
+        print(str(accuracy_score(label_test_set, label_predicted)))
+
+print("{0:.2%}".format(average_accuracy/8))
