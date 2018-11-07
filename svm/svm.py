@@ -25,6 +25,34 @@ def end_progress():
     sys.stdout.write("#" * (40 - progress_x) + "]\n")
     sys.stdout.flush()
 
+def run_tests(data, label, size, split):
+    avg_accuracy = 0
+
+    for i in range(1, split + 1):
+        test_set = data[round((i - 1) * size / split):round((i) * size / split)]
+        label_test_set = label[round((i - 1) * size / split):round((i) * size / split)]
+
+        training_set = data[0:round((i - 1) * size / split)]
+        training_set.extend(data[round((i) * size / split):])
+
+        label_training_set = label[0:round((i - 1) * size / split)]
+        label_training_set.extend(label[round((i) * size / split):])
+
+        print("Test-" + str(i))
+        print("> Training model...")
+        model = svm.SVC(C=10, kernel=args.kernel, gamma=args.gamma)
+        model.fit(training_set, label_training_set)
+        model.score(training_set, label_training_set)
+
+        print("> Predicting test data...")
+        label_predicted = model.predict(test_set)
+
+        avg_accuracy += accuracy_score(label_test_set, label_predicted)
+        print("> Accuracy: {0:.2f}%".format(accuracy_score(label_test_set, label_predicted) * 100))
+
+    print("=====================================")
+    print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy * 100 / split))
+
 def main(args):
     start_time = time.time()
     print("Running SVM Classifier")
@@ -74,37 +102,8 @@ def main(args):
             break
     end_progress()
 
+    run_tests(data, label, total, 8)
 
-    #cross validation
-    size = total
-
-    average_accuracy = 0
-
-    print("Training model...")
-
-    for i in range(1,9):
-
-        test_set = data[round((i-1)*size/8):round((i)*size/8)]
-        label_test_set = label[round((i-1)*size/8):round((i)*size/8)]
-        
-        training_set = data[0:round((i-1)*size/8)]
-        training_set.extend(data[round((i)*size/8):])
-
-        label_training_set = label[0:round((i-1)*size/8)]
-        label_training_set.extend(label[round((i)*size/8):])
-
-        print("starting test ke " + str(i))
-
-        model = svm.SVC(kernel=args.kernel, C=10, gamma=args.gamma)
-        model.fit(training_set, label_training_set)
-        model.score(training_set, label_training_set)
-
-        label_predicted = model.predict(test_set)
-
-        average_accuracy += accuracy_score(label_test_set, label_predicted)
-        print(str(accuracy_score(label_test_set, label_predicted)))
-
-    print("{0:.2%}".format(average_accuracy/8))
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
 if __name__ == "__main__":
