@@ -1,6 +1,7 @@
 import json
 import argparse
 import glob
+import nltk
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from nltk import WordNetLemmatizer
@@ -68,7 +69,9 @@ def nb():
         
             tempDictionaryPositive[word]=True
             tempDictionaryNegative[word]=False
-            listOfWords.append(word)
+            
+            if word not in listOfWords:
+                listOfWords.append(word)
 
         for gen in listOfGender:
             if(gen==gender):

@@ -74,15 +74,37 @@ def main(args):
             break
     end_progress()
 
+
+    #cross validation
+    size = total
+
+    average_accuracy = 0
+
     print("Training model...")
-    model = svm.SVC(C=1, kernel=args.kernel, gamma=args.gamma)
-    model.fit(data, label)
-    model.score(data, label)
 
-    print("Predicting based on trained model...\n")
-    label_predicted = model.predict(data)
+    for i in range(1,9):
 
-    print("Accuracy score: {0:.2f}%".format(accuracy_score(label, label_predicted) * 100))
+        test_set = data[round((i-1)*size/8):round((i)*size/8)]
+        label_test_set = label[round((i-1)*size/8):round((i)*size/8)]
+        
+        training_set = data[0:round((i-1)*size/8)]
+        training_set.extend(data[round((i)*size/8):])
+
+        label_training_set = label[0:round((i-1)*size/8)]
+        label_training_set.extend(label[round((i)*size/8):])
+
+        print("starting test ke " + str(i))
+
+        model = svm.SVC(kernel=args.kernel, C=10, gamma=args.gamma)
+        model.fit(training_set, label_training_set)
+        model.score(training_set, label_training_set)
+
+        label_predicted = model.predict(test_set)
+
+        average_accuracy += accuracy_score(label_test_set, label_predicted)
+        print(str(accuracy_score(label_test_set, label_predicted)))
+
+    print("{0:.2%}".format(average_accuracy/8))
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
 if __name__ == "__main__":
