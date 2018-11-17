@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+
 import sys
 import json
 import time
@@ -7,28 +9,13 @@ import math
 import random
 import argparse
 
+from progress import start_progress, end_progress, progress
+from cache import cache
+
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 
-TIMESTAMP = time.strftime("%H%M%S")
 BLACKLIST_WORDS = []
-
-def start_progress(title):
-    global progress_x
-    sys.stdout.write(title + ": [" + "-"*40 + "]" + chr(8)*41)
-    sys.stdout.flush()
-    progress_x = 0
-
-def progress(x):
-    global progress_x
-    x = int(x * 40 // 100)
-    sys.stdout.write("#" * (x - progress_x))
-    sys.stdout.flush()
-    progress_x = x
-
-def end_progress():
-    sys.stdout.write("#" * (40 - progress_x) + "]\n")
-    sys.stdout.flush()
 
 def load_blacklist_words(filename):
     global BLACKLIST_WORDS
@@ -36,42 +23,12 @@ def load_blacklist_words(filename):
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
 
-"""
-Cache format
-
-[data] is a file where each line is of the form:
-
-    [M] [term_1]:[count] [term_2]:[count] ...  [term_N]:[count]
-
-where [M] is the number of unique terms in the document, and the [count]
-associated with each term is how many times that term appeared in the document.
-
-[label] is a file where each line is the corresponding label for [data].
-The labels must be 0, 1, ..., C-1, if we have C classes.
-"""
-def cache_data(data, term_count, filename):
-    filename = filename + "-" + TIMESTAMP + ".dat"
-
-    with open(filename, "w") as f:
-        for doc in data:
-            f.write(str(term_count))
-            for idx, count in enumerate(doc):
-                f.write(" " + str(idx) + ":" + str(count))
-            f.write("\n")
-
-def cache_label(label, filename):
-    filename = filename + "-" + TIMESTAMP + ".dat"
-
-    with open(filename, "w") as f:
-        for l in label:
-            f.write(str(l) + "\n")
-
-def cache(data, label, word_count):
-    print("Caching data... [suffix: {}]".format(TIMESTAMP))
-    cache_label(label, "label")
-    cache_data(data, word_count, "data")
-
-def run_tests(data, label, size, split):
+def run_tests(data, label, size, split, kernel, gamma):
+    print("\nRunning tests")
+    print("=============")
+    print("Kernel:", kernel)
+    print("Gamma:", gamma)
+    print("=============\n")
     avg_accuracy = 0
 
     for i in range(1, split + 1):
@@ -86,7 +43,7 @@ def run_tests(data, label, size, split):
 
         print("Test-" + str(i))
         print("> Training model...")
-        model = svm.SVC(C=10, kernel=args.kernel, gamma=args.gamma)
+        model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
         model.fit(training_set, label_training_set)
         model.score(training_set, label_training_set)
 
@@ -131,13 +88,13 @@ def main(args):
     gender_comment = []
     for idx, data in enumerate(male_comment):
         if idx >= args.limit_per_gender:
-            print("Stored {} male comments, stopping".format(idx))
+            print("Stored {} male comments".format(idx))
             break
         data[1] = data[1].lower()
         gender_comment.append(data)
     for idx, data in enumerate(female_comment):
         if idx >= args.limit_per_gender:
-            print("Stored {} female comments, stopping".format(idx))
+            print("Stored {} female comments".format(idx))
             break
         data[1] = data[1].lower()
         gender_comment.append(data)
@@ -157,8 +114,7 @@ def main(args):
     total = len(gender_comment)
     start_progress("Processing {} raw gender-comment data".format(total))
     for i, j in enumerate(gender_comment):
-        # Label for female = 0, and male = 1
-        if j[0] == 'female':
+        if j[0] == 'female':  # Label for female = 0, and male = 1
             label.append(0)
         else:
             label.append(1)
@@ -186,7 +142,7 @@ def main(args):
     if args.cache:
         cache(data, label, word_count)
 
-    run_tests(data, label, total, 8)
+    run_tests(data, label, total, 8, args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
@@ -220,6 +176,7 @@ if __name__ == "__main__":
         default=False,
         help="Cache processed raw data")
 
+    # Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.
     parser.add_argument(
         "-g",
         "--gamma",
@@ -227,15 +184,18 @@ if __name__ == "__main__":
         dest="gamma",
         default=1,
         type=int,
-        help="Gamma value")
+        help="Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’")
 
+    # Specifies the kernel type to be used in the algorithm
+    # Must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a
+    # callable. If none is given, ‘rbf’ will be used
     parser.add_argument(
         "-k",
         "--kernel",
         action="store",
         dest="kernel",
-        default="linear",
-        help="Kernel to use")
+        default="rbf",
+        help="Specifies the kernel type to be used in the algorithm")
 
     args = parser.parse_args()
     main(args)
