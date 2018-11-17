@@ -1,3 +1,6 @@
+#vscode
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -111,3 +114,6 @@ pictures/
 #misc
 testing.py
 response back up.zip
+
+#cache
+*.dat
