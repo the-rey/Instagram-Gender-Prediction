@@ -2,26 +2,28 @@
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
 
-import sys
+import argparse
 import json
-import time
 import math
 import random
-import argparse
+import sys
+import time
 
-from progress import start_progress, end_progress, progress
-from cache import cache
-
+from progress import end_progress, progress, start_progress
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 
+from cache import cache
+
 BLACKLIST_WORDS = []
+
 
 def load_blacklist_words(filename):
     global BLACKLIST_WORDS
     with open(filename) as f:
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
+
 
 def run_tests(data, label, size, split, kernel, gamma):
     print("\nRunning tests")
@@ -55,6 +57,7 @@ def run_tests(data, label, size, split, kernel, gamma):
 
     print("=====================================")
     print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy * 100 / split))
+
 
 def main(args):
     start_time = time.time()
@@ -145,6 +148,7 @@ def main(args):
     run_tests(data, label, total, 8, args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
+
 
 if __name__ == "__main__":
     """ This is executed when run from the command line """

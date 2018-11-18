@@ -18,6 +18,7 @@ The labels must be 0, 1, ..., C-1, if we have C classes.
 
 TIMESTAMP = time.strftime("%H%M%S")
 
+
 def cache_data(data, term_count, filename):
     filename = filename + "-" + TIMESTAMP + ".dat"
 
@@ -28,12 +29,14 @@ def cache_data(data, term_count, filename):
                 f.write(" " + str(idx) + ":" + str(count))
             f.write("\n")
 
+
 def cache_label(label, filename):
     filename = filename + "-" + TIMESTAMP + ".dat"
 
     with open(filename, "w") as f:
         for l in label:
             f.write(str(l) + "\n")
+
 
 def cache(data, label, word_count):
     print("Caching data... [suffix: {}]".format(TIMESTAMP))
