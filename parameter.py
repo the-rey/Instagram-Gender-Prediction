@@ -3,16 +3,19 @@
 
 username = ""
 password = ""
-targetUsername = ["herrykristanto","felliegao"]
-garbageWords=["bbm","deposit","jual","store","check","whatsapp","promo","bonus","info","murah","cek","online","grosir","imported","followers","likers","cek","kami"," line ","spotify","import","domino","poker"," rb ","foll","Followers","hanya","private"," produk "," ori "]
+target_username = ["herrykristanto", "felliegao"]
+garbage_words = ["bbm", "deposit", "jual", "store", "check", "whatsapp", "promo", "bonus", "info", "murah", "cek",
+                 "online", "grosir", "imported", "followers", "likers", "cek", "kami", " line ", "spotify", "import",
+                 "domino", "poker", " rb ", "foll", "Followers", "hanya", "private", " produk ", " ori "]
 
 
-def getPassword():
+def get_password():
     return password
 
-def getUsername():
+
+def get_username():
     return username
 
-def getTargetUsername():
-    return targetUsername
 
+def get_target_username():
+    return target_username
