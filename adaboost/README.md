@@ -94,4 +94,4 @@ Elapsed time: 278.01s
 
 ## Reference
 
-`https://scikit-learn.org/stable/modules/svm.html`
+`https://scikit-learn.org/stable/modules/ensemble.html#adaboost`

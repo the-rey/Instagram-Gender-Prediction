@@ -48,7 +48,3 @@ Classifying using trained Naive-Bayes model
 
 Insert phrase >>
 ```
-
-## Reference
-
-`https://scikit-learn.org/stable/modules/svm.html`
