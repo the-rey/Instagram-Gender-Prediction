@@ -26,7 +26,7 @@ def load_blacklist_words(filename):
 
 
 def run_tests(data, label, size, split, kernel, gamma):
-    print("\nRunning tests")
+    print("\n\nRunning tests")
     print("=============")
     print("Kernel:", kernel)
     print("Gamma:", gamma)
@@ -71,34 +71,26 @@ def main(args):
         male_comment = json.load(f)
     with open('data/female-comments.json', 'r') as f:
         female_comment = json.load(f)
+    random.shuffle(male_comment)
+    random.shuffle(female_comment)
     print("Loaded {} male and {} female comments".format(len(male_comment), len(female_comment)))
 
+    female_ratio = (1.0 - args.male_female_ratio)
     if args.limit != -1:
-        args.limit_per_gender = int(args.limit / 2)
-        print("Limiting male and female comments to {} each ({} total)".format(args.limit_per_gender, args.limit))
+        print("Limiting male and female comments to {} male and {} female ({} total)".format(
+            int(args.limit * args.male_female_ratio), int(args.limit * female_ratio), args.limit))
         try:
-            del male_comment[args.limit_per_gender:]
-            del female_comment[args.limit_per_gender:]
+            del male_comment[int(args.limit * args.male_female_ratio):]
+            del female_comment[int(args.limit * female_ratio):]
         except:
             print("Not enough male/female comments data")
             sys.exit(1)
 
-    if args.limit_per_gender > len(male_comment):
-        print("Warning, limit per gender is higher than available male comments:", len(male_comment))
-    if args.limit_per_gender > len(female_comment):
-        print("Warning, limit per gender is higher than available female comments:", len(female_comment))
-
     gender_comment = []
     for idx, data in enumerate(male_comment):
-        if idx >= args.limit_per_gender:
-            print("Stored {} male comments".format(idx))
-            break
         data[1] = data[1].lower()
         gender_comment.append(data)
     for idx, data in enumerate(female_comment):
-        if idx >= args.limit_per_gender:
-            print("Stored {} female comments".format(idx))
-            break
         data[1] = data[1].lower()
         gender_comment.append(data)
     random.shuffle(gender_comment)
@@ -110,7 +102,7 @@ def main(args):
     list_of_words = list(list_of_words)
     word_count = len(list_of_words)
 
-    print("Total of {} words found".format(word_count))
+    print("Total of {} words found\n".format(word_count))
 
     data = []
     label = []
@@ -137,7 +129,7 @@ def main(args):
             d.append(count)
         data.append(d)
 
-        progress(i / total * 100)
+        progress((i + 1) / total * 100)
         if i == total:
             break
     end_progress()
@@ -164,13 +156,13 @@ if __name__ == "__main__":
         help="Limit processed data, equal male and female comments")
 
     parser.add_argument(
-        "-e",
-        "--limit-per-gender",
+        "-r",
+        "--male-female-ratio",
         action="store",
-        dest="limit_per_gender",
-        default=math.inf,
-        type=int,
-        help="Limit per gender")
+        dest="male_female_ratio",
+        default=0.5,
+        type=float,
+        help="Male to female ratio")
 
     parser.add_argument(
         "-c",
