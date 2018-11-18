@@ -117,3 +117,6 @@ response back up.zip
 
 #cache
 *.dat
+
+#result-log
+*.txt
