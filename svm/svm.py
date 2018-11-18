@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
 

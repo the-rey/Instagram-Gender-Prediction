@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import argparse
 import glob
@@ -41,18 +42,6 @@ def read_file(filename):
             data.append((new_comment["gender"], comment["text"]))
 
     shuffle(data)
-
-
-def main(args):
-    filenames = glob.glob("comments/*.json")
-    for index, filename in enumerate(filenames):
-        print(str(index) + " " + filename)
-        read_file(filename)
-
-    print("Number of user: " + str(len(filenames)))
-    print("Number of comments: " + str(len(data)))
-
-    naive_bayes_classify(naive_bayes())
 
 
 def naive_bayes():
@@ -99,9 +88,9 @@ def naive_bayes():
         print(text)
     except:
         print("Exception...")
-        True
 
     save_file = open("model/gender_classifier.p", "wb")
+
     pickle.dump(gender_classifier, save_file)
     save_file.close()
 
@@ -120,12 +109,41 @@ def naive_bayes_classify(gender_classifier):
         for word in word_tokenize(text):
             text_dict[word.lower()] = True
 
-        print("Phrase = ", text)
-        print("Gender  = ", gender_classifier.classify(text_dict))
+        print("Phrase: ", text)
+        print("Gender: ", gender_classifier.classify(text_dict))
+
+
+def main(args):
+    if args.model != "":
+        with open(args.model, "rb") as f:
+            classifier = pickle.Unpickler(f).load()
+    else:
+        filenames = glob.glob("comments/*.json")
+        for index, filename in enumerate(filenames):
+            print(str(index) + " " + filename)
+            read_file(filename)
+
+        print("Number of user: " + str(len(filenames)))
+        print("Number of comments: " + str(len(data)))
+
+        classifier = naive_bayes()
+
+    print(classifier)
+
+    naive_bayes_classify(classifier)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    args = parser.parse_args()
 
+    parser.add_argument(
+        "-m",
+        "--model",
+        action="store",
+        dest="model",
+        default="",
+        type=str,
+        help="Specify model file (pickle format)")
+
+    args = parser.parse_args()
     main(args)
