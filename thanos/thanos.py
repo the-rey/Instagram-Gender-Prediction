@@ -102,7 +102,7 @@ if __name__ == "__main__":
         action="store",
         dest="secret",
         default="",
-        help="Specifies the env for flask to run")
+        help="Specifies the session secret key")
 
     args = parser.parse_args()
 
