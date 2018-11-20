@@ -1,13 +1,13 @@
-# Instagram Face Detection
+# Thanos
 
-### How to Run
+Know your Instagram followers gender!
 
-  - Insert your password to *get_followers_pictures.py* 
- ```
-password = <your password>
-```
-  - Run it 
- ```
-$  get_followers_pictures.py
-```
+## Getting Started
 
+Assuming you have `virtualenv` installed:
+
+- `virtualenv venv && source venv/bin/activate`
+- `pip install -r requirements.txt`
+- `python3 svm.py --help`
+
+## Under construction!
