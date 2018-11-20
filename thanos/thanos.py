@@ -69,7 +69,7 @@ if __name__ == "__main__":
         "--port",
         action="store",
         dest="port",
-        default="80",
+        default="5001",
         help="Specifies the port to listen on")
 
     parser.add_argument(
