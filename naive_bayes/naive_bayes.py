@@ -118,8 +118,9 @@ def naive_bayes_classify(gender_classifier):
 
 
 def main(args):
-    print("Running Naive-Bayes Classifier")
+    print("Running Naive-Bayes Classifier\n")
     if args.model != "":
+        print("Loading model file: {}\n".format(args.model))
         with open(args.model, "rb") as f:
             classifier = pickle.Unpickler(f).load()
     else:

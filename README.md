@@ -1,13 +1,27 @@
-# Instagram Face Detection
+# Thanos
 
-### How to Run
+Know your Instagram followers gender!
 
-  - Insert your password to *get_followers_pictures.py* 
- ```
-password = <your password>
+## Getting Started
+
+Assuming you have `virtualenv` installed:
+
+- `virtualenv venv && source venv/bin/activate`
+- `pip install -r requirements.txt`
+- `cd thanos && python thanos.py`
+
 ```
-  - Run it 
- ```
-$  get_followers_pictures.py
+$ ./thanos.py -h
+usage: thanos.py [-h] [-p PORT] [-o HOST] [-d] [-e ENV] [-s SECRET]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PORT, --port PORT  Specifies the port to listen on
+  -o HOST, --host HOST  Specifies the interface address to listen on
+  -d, --debug           Specifies the debug mode
+  -e ENV, --env ENV     Specifies the env for flask to run
+  -s SECRET, --secret SECRET
+                        Specifies the session secret key
 ```
 
+## Under construction!
