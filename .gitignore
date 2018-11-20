@@ -119,4 +119,5 @@ response back up.zip
 *.dat
 
 #result-log
-*.txt
+!requirements.txt
+*[0-9].txt
