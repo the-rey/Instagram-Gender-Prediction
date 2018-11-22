@@ -100,6 +100,11 @@ def naive_bayes(cache_model):
 
     return gender_classifier
 
+#fungsi sementara
+def load_model():
+    with open("model/gender_classifier.p", "rb") as f:
+            classifier = pickle.Unpickler(f).load()
+    return classifier
 
 def naive_bayes_classify(gender_classifier):
     print("Classifying using trained Naive-Bayes model")
@@ -116,6 +121,14 @@ def naive_bayes_classify(gender_classifier):
 
         print("Guessed Gender: '{}'\n".format(gender_classifier.classify(text_dict)))
 
+def naive_bayes_classify_from_text(gender_classifier, text):
+
+    text_dict = {}
+    for word in word_tokenize(text):
+        text_dict[word.lower()] = True
+
+    print("Guessed Gender: '{}'\n".format(gender_classifier.classify(text_dict)))
+    return gender_classifier.classify(text_dict)
 
 def main(args):
     print("Running Naive-Bayes Classifier\n")

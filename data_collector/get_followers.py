@@ -56,7 +56,7 @@ def collect_data(args, targetUsername):
     TargetUserId = (API.LastJson["user"]["pk"])
 
     # get followings
-    followers = getTotalFollowing(API, TargetUserId)
+    followers = getTotalFollowers(API, TargetUserId)
     followers.reverse()
 
     print("getting followers")
