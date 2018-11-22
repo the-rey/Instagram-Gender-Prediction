@@ -1,9 +1,9 @@
 from InstagramAPI import InstagramAPI
 import urllib
-from get_media import getUsersPictures
-from azure.face_detection import getFaceAttributes
 from parameter import get_password, get_username, get_target_username
 import argparse
+from get_comments import get_comments, classify_nb
+from statistics import mode
 
 
 def getTotalFollowers(api, user_id):
@@ -57,21 +57,38 @@ def collect_data(args, targetUsername):
 
     # get followings
     followers = getTotalFollowers(API, TargetUserId)
-    followers.reverse()
 
     print("getting followers")
+
+    follower_gender = {}
 
     # print followers id if user is public
 
     for index, follower in enumerate(followers):
         try:
             if(follower['is_private'] == False):
-                print(follower['username'])
-                getUsersPictures(API, follower['username'])
+                result = []
+                for media in getUsersMediaID(API, follower['username']):
+                    result.append(classify_nb(get_comments(API,media['id'])))
+                
+                print(mode(result))
+                follower[username]=mode(result)
         except:
             print("error when collecting data for " + follower['username'])
 
 
+def getUsersMediaID(API, targetUsername):
+    
+    API.searchUsername(targetUsername)
+    user_id = (API.LastJson["user"]["pk"])
+
+    API.getUserFeed(user_id)
+    # get response json and assignment value to MediaList Variable
+    # dict type data 
+    mediaList = API.LastJson 
+ 
+    return mediaList['items']
+        
 def main(args):
 
     targets = get_target_username()
