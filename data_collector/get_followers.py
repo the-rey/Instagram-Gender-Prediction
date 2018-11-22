@@ -44,9 +44,9 @@ def getTotalFollowing(api, user_id):
     return followers
 
 
-def collect_data(args, targetUsername):
-    username = args.username
-    password = args.password
+def collect_data(targetUsername):
+    username = get_username
+    password = get_password
 
     API = InstagramAPI(username, password)
     API.login()
@@ -91,11 +91,11 @@ def getUsersMediaID(API, targetUsername):
         
 def main(args):
 
-    targets = get_target_username()
+    #targets = get_target_username()
 
-    for targetUsername in targets:
-        print("target : " + targetUsername)
-        collect_data(args, targetUsername)
+    # for targetUsername in targets:
+    #     print("target : " + targetUsername)
+    #     collect_data(args, targetUsername)
 
 
 if __name__ == "__main__":
