@@ -3,7 +3,7 @@
 
 username = ""
 password = ""
-target_username = ["herrykristanto", "felliegao"]
+target_username = ["herrykristanto"]
 garbage_words = ["bbm", "deposit", "jual", "store", "check", "whatsapp", "promo", "bonus", "info", "murah", "cek",
                  "online", "grosir", "imported", "followers", "likers", "cek", "kami", " line ", "spotify", "import",
                  "domino", "poker", " rb ", "foll", "Followers", "hanya", "private", " produk ", " ori "]

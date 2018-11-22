@@ -9,14 +9,16 @@ import time
 import random
 import json
 
+
 from flask_socketio import SocketIO, emit
 from threading import Thread, Event
 from time import sleep
 from flask import (Flask, render_template, flash, redirect,
     url_for, request, copy_current_request_context)
 
-import svm
-import naive_bayes
+from svm import svm
+from naive_bayes import naive_bayes
+from data_collector import InstagramAPI, get_followers_pictures
 
 app = Flask("Thanos Classifier API")
 socketio = SocketIO(app)
