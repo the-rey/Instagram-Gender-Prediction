@@ -18,7 +18,7 @@ from flask import (Flask, render_template, flash, redirect,
 
 import svm
 import naive_bayes as nb
-from data_collector import collector
+import collector
 from InstagramAPI import InstagramAPI
 
 client_threads = {}
