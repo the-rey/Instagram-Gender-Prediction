@@ -58,7 +58,8 @@ class InstagramAPI:
 
     def __init__(self, username, password, debug=False, IGDataPath=None):
         m = hashlib.md5()
-        if username or password:m.update(username.encode('utf-8') + password.encode('utf-8'))
+        if username or password:
+            m.update(username.encode('utf-8') + password.encode('utf-8'))
         self.device_id = self.generateDeviceId(m.hexdigest())
         self.setUser(username, password)
         self.isLoggedIn = False
@@ -107,6 +108,8 @@ class InstagramAPI:
                     self.getRecentActivity()
                     print("Login success!\n")
                     return True
+
+        return False
 
     def syncFeatures(self):
         data = json.dumps({'_uuid': self.uuid,

@@ -1,111 +1,94 @@
 #!/usr/bin/env python
-import time
 # -*- coding: utf-8 -*-
 
-# si data_collector ini terima input username trs return komentar follower2 aja
-# dalam bentuk :
-# [
-#   ["komen1", "komen2", ...],  <-- follower 1
-#   ["komen1", "komen2", ...]   <-- follower 2
-#   ["komen1", "komen2", ...]   <-- follower 3
-#    ...
-# ]
-# ntar si thanos yang proses smua pake classifier yang dipilih user
+import time
+import math
+import random
 
-# Returns commments of a username
-def get_all_followers_comments(username, api): # Ini yang bakal dipanggil si thanos, berati InstagramAPI harus di initiate di thanos
+def get_all_followers_comments(client, username, follower_limit=math.inf,
+    media_per_follower_limit=25, comments_per_media_limit=250):
     all_follower_comments = []
-    followers = get_followers(username,api)
+    followers = get_followers_id_list(client, username, follower_limit)
 
     for follower in followers:
         follower_comments = []
 
-        all_media_id = get_all_media_id(follower,api)
+        all_media_id = get_all_media_id(client, follower, media_per_follower_limit)
         for media_id in all_media_id:
-            media_comments = get_media_comments(media_id)
-
-             # semua komen dari semua medianya gabung jadi 1 list
+            media_comments = get_media_comments(client, media_id, comments_per_media_limit)
             follower_comments.extend(media_comments)
 
-        # lalu append list ke sini, jadi bentuknya list of list
-        # jd tiap list di dalam list ini represents list of comments dari 1 follower
         all_follower_comments.append(follower_comments)
 
+    random.shuffle(all_follower_comments)
     return all_follower_comments
 
-# Returns list of followers of "username"
-def get_followers(username,api):
+def get_followers_id_list(client, username, limit):
+    """ Returns list of followers' user ID """
     followers = []
 
-    """
-    Returns the list of followers of the user.
-    It should be equivalent of calling api.getTotalFollowers from InstagramAPI
-    """
+    next_max_id = ''
+    while True:
+        client.searchUsername(username)
+        user_id = client.LastJson["user"]["pk"]
+        client.getUserFollowers(user_id, maxid=next_max_id)
 
-    followers = []
-    next_max_id = True
-    while next_max_id:
-        # first iteration hack
-        if next_max_id is True:
-            next_max_id = ''
+        data = filter(lambda x: x['is_private'] == False,
+            client.LastJson.get('users', []))
+        data = map(lambda x: x['pk'], data)
+        followers.extend(data)
 
-        _ = api.getUserFollowers(username, maxid=next_max_id)
-        followers.extend(api.LastJson.get('users', []))
-        next_max_id = api.LastJson.get('next_max_id', '')
+        next_max_id = client.LastJson.get('next_max_id', '')
+        if not next_max_id or len(followers) >= limit:
+            random.shuffle(followers)
+            if len(followers) > limit:
+                del followers[limit:]
+            break
+
     return followers
 
-# Returns list of media id of a username
-def get_all_media_id(username,api):
+def get_all_media_id(client, user_id, media_limit):
+    client.getUserFeed(user_id)
 
-    all_media_id = []
-    # TODO get all media id of a user
-    # all_media_id.append(...)
+    media_id_list = client.LastJson['items']
+    media_id_list = list(map(lambda x: x['id'], media_id_list))
+    random.shuffle(media_id_list)
 
-    api.searchUsername(username)
-    user_id = (api.LastJson["user"]["pk"])
-    api.getUserFeed(user_id)
+    if len(media_id_list) > media_limit:
+        del media_id_list[media_limit:]
 
-    # get response json and assignment value to MediaList Variable
-    # dict type data 
-    mediaList = api.LastJson 
+    return media_id_list
 
-    for media in mediaList['items']:
-        all_media_id.append(media['id'])
-
-    return all_media_id
-
-def get_media_comments(media_id,api):
+def get_media_comments(client, media_id, comment_limit):
     media_comments = []
-    LIMIT = 500
 
-    # TODO get comments of a media
-    # media_comments.append(...)
-
-    if(not media_id): 
-        print("media_id not found")
-        return False
-
-    has_more_comments = True
     max_id = ''
-
-    flag = True
-
-    while has_more_comments and flag:
-        _ = api.getMediaComments(media_id, max_id=max_id)
-        # comments' page come from older to newer, lets preserve desc order in full list
+    while True:
+        client.getMediaComments(media_id, max_id=max_id)
         try:
-            for c in reversed(api.LastJson['comments']):
-                media_comments.append(c)
-                if len(media_comments) > LIMIT:
-                    flag = False
-                
+            comments = reversed(client.LastJson['comments'])
+            comments = map(lambda x: x['text'].lower(), comments)
+
+            media_comments.extend(comments)
         except:
-            print(api.LastJson)
-            
-        has_more_comments = api.LastJson.get('has_more_comments', False)
-        
-        if has_more_comments:
-            max_id = api.LastJson.get('next_max_id', '')
-            time.sleep(1)
+            break
+
+        has_more_comments = client.LastJson.get('has_more_comments', False)
+        if not has_more_comments or len(media_comments) >= comment_limit:
+            if len(media_comments) > comment_limit:
+                del media_comments[comment_limit:]
+            break
+
+        max_id = client.LastJson.get('next_max_id', '')
+        time.sleep(1)
 
     return media_comments
+
+def get_user_id(client, username):
+    client.searchUsername(username)
+    try:
+        user_id = client.LastJson["user"]["pk"]
+    except:
+        pass
+
+    return user_id

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os
 import sys
@@ -18,33 +18,57 @@ from flask import (Flask, render_template, flash, redirect,
 
 import svm
 import naive_bayes as nb
-import data_collector as dc
+from data_collector import collector
+from InstagramAPI import InstagramAPI
 
+client_threads = {}
 app = Flask("Thanos Classifier API")
 socketio = SocketIO(app)
 
-client_threads = {}
-
 class ClientThread(Thread):
     def __init__(self, client_id):
-        self._progress = 1
         self._client_id = client_id
 
         super().__init__()
 
-    def setData(self, algorithm, query):
+    def setData(self, algorithm, username, follower_limit, media_per_follower_limit, comments_per_media_limit):
         self._algorithm = algorithm
-        self._query = query
+        self._username = username
+        self._follower_limit = follower_limit
+        self._media_per_follower_limit = media_per_follower_limit
+        self._comments_per_media_limit = comments_per_media_limit
+
+    def send_status(self, done, type, header="", body=""):
+        payload = {'done': done, 'type': type, 'header': header, 'body': body}
+        socketio.emit(self._client_id, payload, namespace='/classify')
 
     def run(self):
-        if not (self._algorithm or self._query):
+        if not (self._algorithm or self._username):
             return
 
-        for _ in range(0, 100):
-            socketio.emit(self._client_id, {'progress': self._progress},
-                namespace='/classify')
-            self._progress += 1
-            sleep(0.05)
+        self.send_status("false", "message", "Getting list of followers")
+        follower_id_list = collector.get_followers_id_list(ig_client, self._username, self._follower_limit)
+        total_follower = len(follower_id_list)
+
+        self.send_status("false", "data", "Total follower(s)", str(total_follower))
+
+        all_follower_comments = []
+        for follower_idx, follower in enumerate(follower_id_list):
+            follower_comments = []
+
+            all_media_id = collector.get_all_media_id(ig_client, follower, self._media_per_follower_limit)
+            total_media = len(all_media_id)
+            for media_idx, media_id in enumerate(all_media_id):
+                self.send_status("false", "message", "Gathering comments from all followers",
+                    str(follower_idx / total_follower * 100) + " follower(s) / " + str(media_idx / total_media * 100) + " media(s)")
+                media_comments = collector.get_media_comments(ig_client, media_id, self._comments_per_media_limit)
+                follower_comments.extend(media_comments)
+
+            all_follower_comments.append(follower_comments)
+
+        self.send_status("false", "data", "Total comment(s) data", str(len(all_follower_comments)))
+        random.shuffle(all_follower_comments)
+        self.send_status("false", "message", "Running " + self._algorithm + " algorithm")
 
 @socketio.on('connect', namespace="/classify")
 def classify():
@@ -57,12 +81,14 @@ def classify():
     return client_id
 
 @socketio.on('compute', namespace='/classify')
-def compute(client_id, algorithm, query):
+def compute(client_id, algorithm, username, follower_limit,
+    media_per_follower_limit, comments_per_media_limit):
     global client_threads
-    print("New compute request about '" + query + "' using: " +
+    print("New compute request about '" + username + "' using: " +
         algorithm + " algorithm, from " + client_id)
 
-    client_threads[client_id].setData(algorithm, query)
+    client_threads[client_id].setData(algorithm, username, follower_limit,
+        media_per_follower_limit, comments_per_media_limit)
     client_threads[client_id].start()
 
 @app.route('/', methods=['GET'])
@@ -70,6 +96,18 @@ def index():
     return render_template("index.html")
 
 def main(args):
+    global ig_client
+    ig_username = os.getenv("IG_USERNAME")
+    ig_password = os.getenv("IG_PASSWORD")
+    if not (ig_username or ig_password):
+        print("Please set IG_USERNAME and IG_PASSWORD env variable")
+
+    print("Logging into instragram account: " + ig_username)
+    ig_client = InstagramAPI(ig_username, ig_password)
+    if not ig_client.login():
+        print("Instagram login failed!")
+        sys.exit(1)
+
     app.run(host=args.host, port=args.port)
 
 if __name__ == "__main__":
