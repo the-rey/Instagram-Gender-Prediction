@@ -22,7 +22,7 @@ def get_all_followers_comments(username, api): # Ini yang bakal dipanggil si tha
 
         all_media_id = get_all_media_id(follower,api)
         for media_id in all_media_id:
-            media_comments = get_media_comments(media_id)
+            media_comments = get_media_comments(media_id,api)
 
              # semua komen dari semua medianya gabung jadi 1 list
             follower_comments.extend(media_comments)
