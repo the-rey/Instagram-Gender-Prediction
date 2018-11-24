@@ -22,8 +22,26 @@ optional arguments:
 
 ## Example
 
+### Using existing model
+
 ```
-$ ./naive_baiyes.py
+$ cd naive_bayes
+$ ./naive_bayes.py -m model/gender_classifier_74529.p
+Running Naive-Bayes Classifier
+
+Loading model file: model/gender_classifier_74529.p
+
+Classifying using trained Naive-Bayes model
+===========================================
+
+Insert phrase >>
+```
+
+### Re-train model
+
+```
+$ cd naive_bayes
+$ ./naive_baiyes.py --cache
 Running Naive-Bayes Classifier
 Reading 1405 user(s) data: [########################################]
 Finished reading data
@@ -42,6 +60,8 @@ Test-6: 76.97%
 Test-7: 76.77%
 Test-8: 76.82%
 Average accuracy: 77.04%
+
+Saving trained model into 'model/gender_classifier_74529.p'
 
 Classifying using trained Naive-Bayes model
 ===========================================

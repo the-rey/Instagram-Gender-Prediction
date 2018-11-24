@@ -6,7 +6,9 @@ import argparse
 import json
 import math
 import random
+import os
 import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import time
 
 from progress import end_progress, progress, start_progress

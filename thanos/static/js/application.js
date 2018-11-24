@@ -1,37 +1,53 @@
-$(document).ready(function(){
-    $('#classify-form').submit(function(e){
+$(document).ready(function() {
+    $('#classify-form').submit(function(e) {
         e.preventDefault()
         clientConnect($(this));
+        $('#submit-button').attr('disabled', 'disabled')
     });
 });
 
-function clientConnect(formElement){
+function clientConnect(formElement) {
     var clientID = uuidv4();
     var data = getFormData(formElement);
     var socket = io.connect('http://' + document.domain + ':' + location.port +
-        '/classify?clientID=' + clientID);
+        '/classify?clientID=' + clientID,  {'forceNew': true});
 
     socket.on('connect', function(){
         console.log("connected");
 
-        socket.emit('compute', clientID, data.algorithm, function(){
+        socket.emit('compute', clientID, data.algorithm, data.username, function(){
             console.log("Requested computation using " + data.algorithm +
                 " algorithm as " + clientID);
-                $('#progress-bar').show();
-            });
-        })
+        });
 
-        socket.on(clientID, function(msg) {
-            console.log("[" + clientID + "] " + "Progress: " + msg.progress)
-            if(msg.progress < 100){
-                $('.progress-bar')
-                    .css('width', msg.progress + '%')
-                    .attr('aria-valuenow', msg.progress);
-            }else{
-                $('#progress-bar').hide();
-                $('#result').collapse('show');
-            }
+        resetProgress();
+    })
+
+    socket.on(clientID, function(msg) {
+        console.log("[" + clientID + "] " + "Progress: " + msg.progress)
+
+        if(msg.progress < 100){
+            $('.progress-bar')
+                .css('width', msg.progress + '%')
+                .attr('aria-valuenow', msg.progress);
+        }else{
+            $('#progress-bar').hide();
+            $('.progress-bar')
+                .css('width', '0%')
+                .attr('aria-valuenow', 0);
+            $('#submit-button').removeAttr('disabled');
+            $('#result').collapse('show');
+            socket.disconnect();
+        }
     });
+}
+
+function resetProgress() {
+    $('#progress-bar').show();
+    $('.progress-bar')
+        .css('width', '0%')
+        .attr('aria-valuenow', 0);
+    $('#result').collapse('hide');
 }
 
 function getFormData(formElement) {
