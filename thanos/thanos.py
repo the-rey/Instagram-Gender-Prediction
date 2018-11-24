@@ -16,9 +16,9 @@ from time import sleep
 from flask import (Flask, render_template, flash, redirect,
     url_for, request, copy_current_request_context)
 
-from svm import svm
-from naive_bayes import naive_bayes
-from data_collector import InstagramAPI, get_followers_pictures
+import svm
+import naive_bayes as nb
+import data_collector as dc
 
 app = Flask("Thanos Classifier API")
 socketio = SocketIO(app)
@@ -27,15 +27,23 @@ client_threads = {}
 
 class ClientThread(Thread):
     def __init__(self, client_id):
+        self._progress = 1
         self._client_id = client_id
-        self.progress = 1
+
         super().__init__()
 
-    def run(self):
-        for _ in range(0, 100):
-            socketio.emit(self._client_id, {'progress': self.progress}, namespace='/classify')
+    def setData(self, algorithm, query):
+        self._algorithm = algorithm
+        self._query = query
 
-            self.progress += 1
+    def run(self):
+        if not (self._algorithm or self._query):
+            return
+
+        for _ in range(0, 100):
+            socketio.emit(self._client_id, {'progress': self._progress},
+                namespace='/classify')
+            self._progress += 1
             sleep(0.05)
 
 @socketio.on('connect', namespace="/classify")
@@ -49,10 +57,12 @@ def classify():
     return client_id
 
 @socketio.on('compute', namespace='/classify')
-def compute(client_id, algorithm):
+def compute(client_id, algorithm, query):
     global client_threads
-    print("New compute request using: " + algorithm + " algorithm, from " + client_id)
+    print("New compute request about '" + query + "' using: " +
+        algorithm + " algorithm, from " + client_id)
 
+    client_threads[client_id].setData(algorithm, query)
     client_threads[client_id].start()
 
 @app.route('/', methods=['GET'])

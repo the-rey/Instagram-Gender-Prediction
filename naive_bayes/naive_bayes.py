@@ -5,7 +5,9 @@ import argparse
 import glob
 import io
 import json
+import os
 import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from random import shuffle
 
 import nltk
@@ -100,42 +102,39 @@ def naive_bayes(cache_model):
 
     return gender_classifier
 
-#fungsi sementara
-def load_model():
-    with open("model/gender_classifier.p", "rb") as f:
-            classifier = pickle.Unpickler(f).load()
+def load_model(model_file):
+    with open(model_file, "rb") as f:
+        classifier = pickle.Unpickler(f).load()
     return classifier
 
-def naive_bayes_classify(gender_classifier):
-    print("Classifying using trained Naive-Bayes model")
-    print("===========================================\n")
+def nb_classify(classifier, text=""):
+    text_dict = {}
 
-    while True:
-        text = input("Insert phrase >> ")
-        if text.lower() == "exit" or text.lower() == "quit":
-            break
+    if text == "":
+        print("Classifying using trained Naive-Bayes model")
+        print("===========================================\n")
 
-        text_dict = {}
+        while True:
+            text = input("Insert phrase >> ").lower()
+            if text in ["quit", "exit"]:
+                return None
+
+            for word in word_tokenize(text):
+                text_dict[word.lower()] = True
+            answer = classifier.classify(text_dict)
+            print("Guessed Gender: '{}'\n".format(answer))
+    else:
         for word in word_tokenize(text):
             text_dict[word.lower()] = True
+        answer = classifier.classify(text_dict)
 
-        print("Guessed Gender: '{}'\n".format(gender_classifier.classify(text_dict)))
-
-def naive_bayes_classify_from_text(gender_classifier, text):
-
-    text_dict = {}
-    for word in word_tokenize(text):
-        text_dict[word.lower()] = True
-
-    print("Guessed Gender: '{}'\n".format(gender_classifier.classify(text_dict)))
-    return gender_classifier.classify(text_dict)
+        return 0 if answer == "female" else 1
 
 def main(args):
     print("Running Naive-Bayes Classifier\n")
     if args.model != "":
         print("Loading model file: {}\n".format(args.model))
-        with open(args.model, "rb") as f:
-            classifier = pickle.Unpickler(f).load()
+        classifier = load_model(args.model)
     else:
         filenames = glob.glob("comments/*.json")
         shuffle(filenames)
@@ -159,7 +158,7 @@ def main(args):
 
         classifier = naive_bayes(args.cache)
 
-    naive_bayes_classify(classifier)
+    nb_classify(classifier)
 
 
 if __name__ == "__main__":
