@@ -15,7 +15,13 @@ function clientConnect(formElement) {
     socket.on('connect', function(){
         console.log("connected");
 
-        socket.emit('compute', clientID, data.algorithm, data.username, function(){
+        // temp values
+        data.follower_limit = 10
+        data.media_per_follower_limit = 20
+        data.comments_per_media_limit = 250
+
+        socket.emit('compute', clientID, data.algorithm, data.username, data.follower_limit,
+            data.media_per_follower_limit, function(){
             console.log("Requested computation using " + data.algorithm +
                 " algorithm as " + clientID);
         });

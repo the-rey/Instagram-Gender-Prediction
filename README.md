@@ -4,6 +4,11 @@ Know your Instagram followers gender!
 
 ## Getting Started
 
+```
+export IG_USERNAME=
+export IG_PASSWORD=
+```
+
 Assuming you have `virtualenv` installed:
 
 - `virtualenv venv && source venv/bin/activate`
