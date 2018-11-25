@@ -12,22 +12,30 @@ from random import shuffle
 
 import nltk
 import numpy as np
-import parameter as param
 from nltk import (NaiveBayesClassifier, WordNetLemmatizer, classify,
                   word_tokenize)
 from nltk.corpus import stopwords
 from nltk.probability import FreqDist
 from progress import end_progress, progress, start_progress
-
-import _pickle as pickle
+import cache
 
 data = []
 list_of_gender = []
 list_of_words = []
 train_data_gender = []
 
+BLACKLIST_WORDS = []
+
+
+def load_blacklist_words(filename):
+    global BLACKLIST_WORDS
+    with open(filename) as f:
+        BLACKLIST_WORDS = f.readlines()
+    BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
 
 def read_file(filename):
+    load_blacklist_words("../data/blacklist.txt")
+
     with open(filename, "r", encoding="utf-8") as f:
         file = json.load(f)
         if str(file["gender"]) == "False":  # Invalid gender
@@ -37,7 +45,7 @@ def read_file(filename):
         words_in_comment = word_tokenize(comment["text"].lower())
 
         valid = True
-        for word in param.garbage_words:
+        for word in BLACKLIST_WORDS:
             if word.lower() in words_in_comment:
                 valid = False
                 break
@@ -78,6 +86,13 @@ def naive_bayes(cache_model):
     end_progress()
     print("\nFinished pre-processing ({} data)".format(total))
 
+    print("Training {} gender data".format(total))
+    main_gender_classifier = NaiveBayesClassifier.train(train_data_gender)
+
+    if cache_model:
+        cache.cache_model(main_gender_classifier, 'model/gender_classifier_{}.p'.format(total))
+
+    print("Cross validation")
     average_accuracy = 0
     size = len(train_data_gender)
 
@@ -94,18 +109,7 @@ def naive_bayes(cache_model):
 
     print("Average accuracy: " + "{0:.2%}\n".format(average_accuracy))
 
-    if cache_model:
-        print("Saving trained model into 'model/gender_classifier_{}.p'\n".format(total))
-        filename = "model/gender_classifier_{}.p".format(total)
-        with open(filename, "wb") as save_file:
-            pickle.dump(gender_classifier, save_file)
-
-    return gender_classifier
-
-def load_model(model_file):
-    with open(model_file, "rb") as f:
-        classifier = pickle.Unpickler(f).load()
-    return classifier
+    return main_gender_classifier
 
 def nb_classify(classifier, text=""):
     text_dict = {}
@@ -119,24 +123,27 @@ def nb_classify(classifier, text=""):
             if text in ["quit", "exit"]:
                 return None
 
+            text_dict.clear()
             for word in word_tokenize(text):
                 text_dict[word.lower()] = True
             answer = classifier.classify(text_dict)
             print("Guessed Gender: '{}'\n".format(answer))
     else:
+        text_dict.clear()
         for word in word_tokenize(text):
             text_dict[word.lower()] = True
         answer = classifier.classify(text_dict)
 
         return 0 if answer == "female" else 1
 
+
 def main(args):
     print("Running Naive-Bayes Classifier\n")
     if args.model != "":
         print("Loading model file: {}\n".format(args.model))
-        classifier = load_model(args.model)
+        classifier = cache.load_model(args.model)
     else:
-        filenames = glob.glob("comments/*.json")
+        filenames = glob.glob("../data/raw_comments/*.json")
         shuffle(filenames)
 
         total = len(filenames)
@@ -156,7 +163,7 @@ def main(args):
             print("Limiting number of comments: {}".format(args.limit))
             del data[args.limit:]
 
-        classifier = naive_bayes(args.cache)
+        classifier = naive_bayes(args.cache_model)
 
     nb_classify(classifier)
 
@@ -186,9 +193,9 @@ if __name__ == "__main__":
         "-c",
         "--cache",
         action="store_true",
-        dest="cache",
+        dest="cache_model",
         default=False,
-        help="Cache processed raw data")
+        help="Cache trained mode data")
 
     args = parser.parse_args()
     main(args)

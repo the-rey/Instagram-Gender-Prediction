@@ -1,11 +1,16 @@
-# svm
+# naive_bayes
+
+Implementation of naive bayes algorithm to classify gender,
+based on comments from instagram media(s).
 
 ## Setup
 
 Assuming you have `virtualenv` installed:
+
 - `virtualenv venv && source venv/bin/activate`
 - `pip install -r requirements.txt`
 - `python3 naive-bayes.py --help`
+
 ```
 $ ./naive_baiyes.py -h
 usage: naive_baiyes.py [-h] [-l LIMIT] [-m MODEL] [-c]
@@ -18,11 +23,12 @@ optional arguments:
                         Specify model file (pickle format)
   -c, --cache           Cache processed raw data
 ```
+
 - `deactivate`
 
 ## Example
 
-### Using existing model
+### Using existing model (trained with 74529 comments, 23499 male and 51030 female)
 
 ```
 $ cd naive_bayes
