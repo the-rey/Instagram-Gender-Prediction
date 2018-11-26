@@ -16,6 +16,7 @@ from sklearn import svm
 from sklearn.metrics import accuracy_score
 
 from cache import cache
+from scipy.sparse import csr_matrix
 
 BLACKLIST_WORDS = []
 
@@ -48,6 +49,10 @@ def run_tests(data, label, size, split, kernel, gamma):
         print("Test-" + str(i))
         print("> Training model...")
         model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
+
+        # training_set = csr_matrix(training_set)
+        # test_set = csr_matrix(test_set)
+
         model.fit(training_set, label_training_set)
         model.score(training_set, label_training_set)
 
@@ -60,7 +65,7 @@ def run_tests(data, label, size, split, kernel, gamma):
     print("=====================================")
     print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy * 100 / split))
 
-
+        
 def main(args):
     start_time = time.time()
     print("Running SVM Classifier")
@@ -69,9 +74,9 @@ def main(args):
     load_blacklist_words("data/blacklist.txt")
 
     print("Reading raw gender-comment data")
-    with open('data/male-comments.json', 'r') as f:
+    with open('data/male-comments.json', 'r', encoding='utf-8') as f:
         male_comment = json.load(f)
-    with open('data/female-comments.json', 'r') as f:
+    with open('data/female-comments.json', 'r', encoding='utf-8') as f:
         female_comment = json.load(f)
     random.shuffle(male_comment)
     random.shuffle(female_comment)
