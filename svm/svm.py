@@ -50,8 +50,8 @@ def run_tests(data, label, size, split, kernel, gamma):
         print("> Training model...")
         model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
 
-        # training_set = csr_matrix(training_set)
-        # test_set = csr_matrix(test_set)
+        training_set = csr_matrix(training_set)
+        test_set = csr_matrix(test_set)
 
         model.fit(training_set, label_training_set)
         model.score(training_set, label_training_set)
