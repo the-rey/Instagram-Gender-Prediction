@@ -37,11 +37,11 @@ def run_compressed(data, label, size, split, kernel, gamma):
     print("=============\n")
     avg_accuracy = 0
 
-    test_set = data[0:100]
-    label_test_set = label[0:100]
+    test_set = data[0:250]
+    label_test_set = label[0:250]
 
-    training_set = data[100:1000]
-    label_training_set = label[100:1000]
+    training_set = data[250:2000]
+    label_training_set = label[250:2000]
     
     print("> Training model...")
     model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
@@ -66,7 +66,7 @@ def run_tests(data, label, size, split, kernel, gamma):
     print("=============\n")
     avg_accuracy = 0
 
-    for i in range(1, split + 1):
+    for i in range(1, 2):
         test_set = data[round((i - 1) * size / split):round((i) * size / split)]
         label_test_set = label[round((i - 1) * size / split):round((i) * size / split)]
 
@@ -174,6 +174,8 @@ def main(args):
         cache(data, label, word_count)
 
     run_tests(data, label, total, 8, args.kernel, args.gamma)
+    print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
+    start_time = time.time()
     run_compressed(compressed, label, total, 1, args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
