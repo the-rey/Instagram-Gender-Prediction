@@ -14,6 +14,7 @@ import time
 from progress import end_progress, progress, start_progress
 from sklearn import svm
 from sklearn.metrics import accuracy_score
+from scipy.sparse import csr_matrix,csc_matrix
 
 from cache import cache
 
@@ -25,6 +26,36 @@ def load_blacklist_words(filename):
     with open(filename) as f:
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
+
+
+#TESTING SPA
+def run_compressed(data, label, size, split, kernel, gamma):
+    print("\n\nRunning tests")
+    print("=============")
+    print("Kernel:", kernel)
+    print("Gamma:", gamma)
+    print("=============\n")
+    avg_accuracy = 0
+
+    test_set = data[0:100]
+    label_test_set = label[0:100]
+
+    training_set = data[100:1000]
+    label_training_set = label[100:1000]
+    
+    print("> Training model...")
+    model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
+    model.fit(training_set, label_training_set)
+    model.score(training_set, label_training_set)
+
+    print("> Predicting test data...")
+    label_predicted = model.predict(test_set)
+
+    avg_accuracy += accuracy_score(label_test_set, label_predicted)
+    print("> Accuracy: {0:.2f}%\n".format(accuracy_score(label_test_set, label_predicted)))
+
+    print("=====================================")
+    print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy))
 
 
 def run_tests(data, label, size, split, kernel, gamma):
@@ -69,9 +100,9 @@ def main(args):
     load_blacklist_words("data/blacklist.txt")
 
     print("Reading raw gender-comment data")
-    with open('data/male-comments.json', 'r') as f:
+    with open('data/male-comments.json', 'r',encoding="cp866") as f:
         male_comment = json.load(f)
-    with open('data/female-comments.json', 'r') as f:
+    with open('data/female-comments.json', 'r',encoding="cp866") as f:
         female_comment = json.load(f)
     random.shuffle(male_comment)
     random.shuffle(female_comment)
@@ -129,17 +160,21 @@ def main(args):
             if list_of_words[idx] in wc:
                 count = wc[list_of_words[idx]]
             d.append(count)
+            
         data.append(d)
 
         progress((i + 1) / total * 100)
         if i == total:
             break
     end_progress()
+    asd = data
+    compressed = csr_matrix(asd)
 
     if args.cache:
         cache(data, label, word_count)
 
     run_tests(data, label, total, 8, args.kernel, args.gamma)
+    run_compressed(compressed, label, total, 1, args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
