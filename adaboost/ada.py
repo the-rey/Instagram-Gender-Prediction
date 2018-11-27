@@ -166,7 +166,7 @@ if __name__ == "__main__":
         "--male-female-ratio",
         action="store",
         dest="male_female_ratio",
-        default=0.5,
+        default=0.38,
         type=float,
         help="Male to female ratio")
 
