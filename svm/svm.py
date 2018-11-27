@@ -14,6 +14,7 @@ import time
 from progress import end_progress, progress, start_progress
 from sklearn import svm
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
 
 from cache import cache
 from scipy.sparse import csr_matrix
@@ -27,6 +28,18 @@ def load_blacklist_words(filename):
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
 
+def run_tests_and_cv(data, label, size, split ,kernel, gamma):
+    print("\n\nRunning tests")
+    print("=============")
+
+    print("> Training model...")
+    # Create and fit an AdaBoosted decision tree
+    model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
+
+    scores = cross_val_score(model,data,label,cv=split)
+
+    print("=====================================")
+    print("Avg. Accuracy: {0:.2f}%".format(scores.mean()*100))
 
 def run_tests(data, label, size, split, kernel, gamma):
     print("\n\nRunning tests")
@@ -144,7 +157,9 @@ def main(args):
     if args.cache:
         cache(data, label, word_count)
 
-    run_tests(data, label, total, 8, args.kernel, args.gamma)
+    #run_tests(data, label, total, 8, args.kernel, args.gamma)
+    data = csr_matrix(data)
+    run_tests_and_cv(data,label,total,8,args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 

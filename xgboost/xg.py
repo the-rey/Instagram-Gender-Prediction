@@ -16,6 +16,7 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from scipy.sparse import csr_matrix
+from sklearn.model_selection import cross_val_score
 
 from cache import cache
 
@@ -27,6 +28,19 @@ def load_blacklist_words(filename):
     with open(filename) as f:
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
+
+def run_tests_and_cv(data,label,size, split):
+    print("\n\nRunning tests")
+    print("=============")
+
+    print("> Training model...")
+    # Create and fit an AdaBoosted decision tree
+    model = model = xgb.XGBClassifier(gamma=1,learning_rate=0.1,n_estimators=180)
+
+    scores = cross_val_score(model,data,label,cv=split)
+
+    print("=====================================")
+    print("Avg. Accuracy: {0:.2f}%".format(scores.mean()*100))
 
 
 def run_tests(data, label, size, split):
@@ -144,7 +158,9 @@ def main(args):
     if args.cache:
         cache(data, label, word_count)
 
-    run_tests(data, label, total, 8)
+    #run_tests(data, label, total, 8)
+    data = csr_matrix(data)
+    run_tests_and_cv(data,label,total,8)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
