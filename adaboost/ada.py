@@ -13,7 +13,7 @@ from progress import end_progress, progress, start_progress
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, coo_matrix, vstack, hstack
 from sklearn.model_selection import RepeatedKFold
 from sklearn.model_selection import cross_val_score
 
@@ -127,7 +127,7 @@ def main(args):
 
     print("Total of {} words found\n".format(word_count))
 
-    data = []
+    data = coo_matrix((1,1))
     label = []
     total = len(gender_comment)
     start_progress("Processing {} raw gender-comment data".format(total))
@@ -150,8 +150,15 @@ def main(args):
             if list_of_words[idx] in wc:
                 count = wc[list_of_words[idx]]
             d.append(count)
-        data.append(d)
 
+        coo_row = coo_matrix(d)
+    
+        if i==0:
+            data = coo_row
+        else:
+            data = vstack((data,coo_row))
+
+      
         progress(i / total * 100)
         if i == total:
             break
@@ -160,7 +167,7 @@ def main(args):
     if args.cache:
         cache(data, label, word_count)
 
-    data = csr_matrix(data)
+
     run_tests_and_cv(data, label, total, 8, args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
