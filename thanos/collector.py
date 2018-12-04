@@ -5,6 +5,7 @@ import time
 import math
 import random
 
+
 def get_all_followers_comments(client, username, follower_limit=math.inf,
     media_per_follower_limit=25, comments_per_media_limit=250):
     all_follower_comments = []
@@ -22,6 +23,7 @@ def get_all_followers_comments(client, username, follower_limit=math.inf,
 
     random.shuffle(all_follower_comments)
     return all_follower_comments
+
 
 def get_followers_id_list(client, username, limit):
     """ Returns list of followers' user ID """
@@ -47,6 +49,7 @@ def get_followers_id_list(client, username, limit):
 
     return followers
 
+
 def get_all_media_id(client, user_id, media_limit):
     client.getUserFeed(user_id)
 
@@ -58,6 +61,7 @@ def get_all_media_id(client, user_id, media_limit):
         del media_id_list[media_limit:]
 
     return media_id_list
+
 
 def get_media_comments(client, media_id, comment_limit):
     media_comments = []
@@ -84,6 +88,7 @@ def get_media_comments(client, media_id, comment_limit):
 
     return media_comments
 
+
 def get_user_id(client, username):
     client.searchUsername(username)
     try:
@@ -92,3 +97,13 @@ def get_user_id(client, username):
         pass
 
     return user_id
+
+
+def get_user_data(client, username):
+    client.searchUsername(username)
+    try:
+        user = client.LastJson["user"]
+    except:
+        pass
+
+    return user
