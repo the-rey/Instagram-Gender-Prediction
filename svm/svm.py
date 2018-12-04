@@ -14,8 +14,10 @@ import time
 from progress import end_progress, progress, start_progress
 from sklearn import svm
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
 
 from cache import cache
+from scipy.sparse import csr_matrix, coo_matrix, vstack, hstack
 
 BLACKLIST_WORDS = []
 
@@ -26,6 +28,18 @@ def load_blacklist_words(filename):
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
 
+def run_tests_and_cv(data, label, size, split ,kernel, gamma):
+    print("\n\nRunning tests")
+    print("=============")
+
+    print("> Training model...")
+    # Create and fit an AdaBoosted decision tree
+    model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
+
+    scores = cross_val_score(model,data,label,cv=split)
+
+    print("=====================================")
+    print("Avg. Accuracy: {0:.2f}%".format(scores.mean()*100))
 
 def run_tests(data, label, size, split, kernel, gamma):
     print("\n\nRunning tests")
@@ -48,6 +62,10 @@ def run_tests(data, label, size, split, kernel, gamma):
         print("Test-" + str(i))
         print("> Training model...")
         model = svm.SVC(C=10, kernel=kernel, gamma=gamma)
+
+        training_set = csr_matrix(training_set)
+        test_set = csr_matrix(test_set)
+
         model.fit(training_set, label_training_set)
         model.score(training_set, label_training_set)
 
@@ -60,7 +78,7 @@ def run_tests(data, label, size, split, kernel, gamma):
     print("=====================================")
     print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy * 100 / split))
 
-
+        
 def main(args):
     start_time = time.time()
     print("Running SVM Classifier")
@@ -69,9 +87,9 @@ def main(args):
     load_blacklist_words("data/blacklist.txt")
 
     print("Reading raw gender-comment data")
-    with open('data/male-comments.json', 'r') as f:
+    with open('data/male-comments.json', 'r', encoding='utf-8') as f:
         male_comment = json.load(f)
-    with open('data/female-comments.json', 'r') as f:
+    with open('data/female-comments.json', 'r', encoding='utf-8') as f:
         female_comment = json.load(f)
     random.shuffle(male_comment)
     random.shuffle(female_comment)
@@ -106,7 +124,7 @@ def main(args):
 
     print("Total of {} words found\n".format(word_count))
 
-    data = []
+    data = coo_matrix((0,0))
     label = []
     total = len(gender_comment)
     start_progress("Processing {} raw gender-comment data".format(total))
@@ -129,7 +147,13 @@ def main(args):
             if list_of_words[idx] in wc:
                 count = wc[list_of_words[idx]]
             d.append(count)
-        data.append(d)
+
+        coo_row = coo_matrix(d)
+    
+        if i==0:
+            data = coo_row
+        else:
+            data = vstack((data,coo_row))
 
         progress((i + 1) / total * 100)
         if i == total:
@@ -139,7 +163,8 @@ def main(args):
     if args.cache:
         cache(data, label, word_count)
 
-    run_tests(data, label, total, 8, args.kernel, args.gamma)
+    #run_tests(data, label, total, 8, args.kernel, args.gamma)
+    run_tests_and_cv(data,label,total,8,args.kernel, args.gamma)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))
 
@@ -162,7 +187,7 @@ if __name__ == "__main__":
         "--male-female-ratio",
         action="store",
         dest="male_female_ratio",
-        default=0.5,
+        default=0.38,
         type=float,
         help="Male to female ratio")
 
