@@ -15,7 +15,7 @@ from xgboost import XGBClassifier
 import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
-from scipy.sparse import csr_matrix
+from scipy.sparse import csc_matrix, coo_matrix, vstack
 from sklearn.model_selection import cross_val_score
 
 from cache import cache
@@ -63,8 +63,8 @@ def run_tests(data, label, size, split):
         # Create and fit an XGBoost Model
         model = xgb.XGBClassifier(gamma=1,learning_rate=0.1,n_estimators=180)
 
-        training_set = csr_matrix(training_set)
-        test_set = csr_matrix(test_set)
+        training_set = csc_matrix(training_set)
+        test_set = csc_matrix(test_set)
 
         model.fit(training_set, label_training_set)
         model.score(training_set, label_training_set)
@@ -125,7 +125,7 @@ def main(args):
 
     print("Total of {} words found\n".format(word_count))
 
-    data = []
+    data = coo_matrix((0,0))
     label = []
     total = len(gender_comment)
     start_progress("Processing {} raw gender-comment data".format(total))
@@ -148,7 +148,14 @@ def main(args):
             if list_of_words[idx] in wc:
                 count = wc[list_of_words[idx]]
             d.append(count)
-        data.append(d)
+
+        coo_row = coo_matrix(d)
+    
+        if i==0:
+            data = coo_row
+        else:
+            data = vstack((data,coo_row))
+
 
         progress(i / total * 100)
         if i == total:
@@ -159,7 +166,7 @@ def main(args):
         cache(data, label, word_count)
 
     #run_tests(data, label, total, 8)
-    data = csr_matrix(data)
+
     run_tests_and_cv(data,label,total,8)
 
     print("Elapsed time: {0:.2f}s".format(time.time() - start_time))

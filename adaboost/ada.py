@@ -158,7 +158,6 @@ def main(args):
         else:
             data = vstack((data,coo_row))
 
-      
         progress(i / total * 100)
         if i == total:
             break
@@ -166,7 +165,6 @@ def main(args):
 
     if args.cache:
         cache(data, label, word_count)
-
 
     run_tests_and_cv(data, label, total, 8, args.kernel, args.gamma)
 
