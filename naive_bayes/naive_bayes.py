@@ -6,6 +6,7 @@ import glob
 import io
 import json
 import os
+import string
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from random import shuffle
@@ -33,6 +34,7 @@ def load_blacklist_words(filename):
         BLACKLIST_WORDS = f.readlines()
     BLACKLIST_WORDS = [x.strip() for x in BLACKLIST_WORDS]
 
+
 def read_file(filename):
     load_blacklist_words("../data/blacklist.txt")
 
@@ -42,7 +44,8 @@ def read_file(filename):
             return
 
     for _, comment in enumerate(file["comments"]):
-        words_in_comment = word_tokenize(comment["text"].lower())
+        words_in_comment = comment["text"].lower().translate(
+            str.maketrans('', '', string.punctuation))
 
         valid = True
         for word in BLACKLIST_WORDS:
@@ -90,26 +93,30 @@ def naive_bayes(cache_model):
     main_gender_classifier = NaiveBayesClassifier.train(train_data_gender)
 
     if cache_model:
-        cache.cache_model(main_gender_classifier, 'model/gender_classifier_{}.p'.format(total))
+        cache.cache_model(main_gender_classifier,
+                          'model/gender_classifier_{}.p'.format(total))
 
     print("Cross validation")
     average_accuracy = 0
     size = len(train_data_gender)
 
     for i in range(1, 9):
-        test_set = train_data_gender[round((i - 1) * size / 8): round((i) * size / 8)]
-        training_set = train_data_gender[0: round((i - 1) * size / 8)]
+        test_set = train_data_gender[round((i - 1) * size / 8):round((i) *
+                                                                     size / 8)]
+        training_set = train_data_gender[0:round((i - 1) * size / 8)]
         training_set.extend(train_data_gender[round((i) * size / 8):])
 
         gender_classifier = NaiveBayesClassifier.train(training_set)
 
-        print("Test-{0}: {1:.2%}".format(i, classify.accuracy(gender_classifier, test_set)))
+        print("Test-{0}: {1:.2%}".format(
+            i, classify.accuracy(gender_classifier, test_set)))
         average_accuracy += classify.accuracy(gender_classifier, test_set)
     average_accuracy /= 8
 
     print("Average accuracy: " + "{0:.2%}\n".format(average_accuracy))
 
     return main_gender_classifier
+
 
 def nb_classify(classifier, text=""):
     text_dict = {}
