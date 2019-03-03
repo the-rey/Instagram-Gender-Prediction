@@ -78,7 +78,7 @@ def run_tests(data, label, size, split, kernel, gamma):
     print("=====================================")
     print("Avg. Accuracy: {0:.2f}%".format(avg_accuracy * 100 / split))
 
-        
+
 def main(args):
     start_time = time.time()
     print("Running SVM Classifier")
@@ -149,7 +149,7 @@ def main(args):
             d.append(count)
 
         coo_row = coo_matrix(d)
-    
+
         if i==0:
             data = coo_row
         else:

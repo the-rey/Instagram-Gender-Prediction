@@ -2,12 +2,13 @@
 
 ### How to Run
 
-  - Insert your password to *get_followers_pictures.py* 
+- Usage arguments
  ```
+username = <username>
 password = <your password>
 ```
-  - Run it 
+- Run it 
  ```
-$  get_followers_pictures.py
+$ get_followers_pictures.py
 ```
 
